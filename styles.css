@@ -265,6 +265,33 @@ textarea {
 .grid-three {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
+
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+.video-card {
+  background: #ffffff;
+  border-radius: 1.5rem;
+  overflow: hidden;
+  box-shadow: 0 20px 45px rgba(15, 57, 36, 0.08);
+}
+
+.video-card video {
+  width: 100%;
+  display: block;
+  height: 240px;
+  object-fit: cover;
+  background: #000;
+}
+
+.video-card h3 {
+  margin: 1rem;
+  font-size: 1.05rem;
+  color: var(--brand-green);
+}
  
  .reverse-grid {
    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -397,7 +424,8 @@ textarea {
   .grid-two,
   .grid-three,
   .split-card,
-  .reverse-grid {
+  .reverse-grid,
+  .video-grid {
     grid-template-columns: 1fr;
   }
 
