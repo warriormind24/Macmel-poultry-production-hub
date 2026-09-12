@@ -4,10 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Macmel Poultry Production Hub</title>
-  <meta name="description" content="Macmel Poultry Production Hub is a branch of Macmel Enterprises providing premium poultry, eggs, and distribution services from Chililabombwe, Zambia." />
+  <meta name="description" content="Macmel Poultry Production Hub is a branch of Macmel Enterprises providing premium poultry, eggs, rabbit production, and distribution services from Chililabombwe, Zambia." />
   <link rel="stylesheet" href="styles.css" />
+  <script>document.documentElement.classList.add('js');</script>
 </head>
 <body>
+  <div class="page-loader" role="status" aria-label="Loading Macmel Poultry Production Hub">
+    <div class="loader-mark">M</div>
+    <div class="loader-line"><span></span></div>
+    <p>Growing something good</p>
+  </div>
   <header class="site-header">
     <div class="container header-inner">
       <a href="#home" class="brand">
@@ -23,6 +29,7 @@
         <a href="#about">About</a>
         <a href="#services">Services</a>
         <a href="#products">Products</a>
+        <a href="#rabbits">Rabbits</a>
         <a href="#testimonials">Testimonials</a>
         <a href="#contact">Contact</a>
       </nav>
@@ -96,6 +103,59 @@
             <span class="card-icon">🚚</span>
             <h3>Reliable Delivery</h3>
             <p>Fast, safe distribution from Chililabombwe with market-ready delivery throughout the region.</p>
+          </article>
+          <article class="service-card service-card-featured">
+            <span class="card-icon">🐇</span>
+            <h3>Rabbit Department</h3>
+            <p>Our newly commissioned rabbit department is building a healthy, well-managed line for breeding and table production.</p>
+            <a class="text-link" href="#rabbits">Meet the new department <span aria-hidden="true">→</span></a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="rabbits" class="rabbit-department section">
+      <div class="container">
+        <div class="rabbit-intro">
+          <div>
+            <span class="eyebrow">New at Macmel</span>
+            <h2>Introducing our rabbit department</h2>
+          </div>
+          <p>We have commissioned a dedicated rabbit production unit focused on careful breeding, healthy growth, and dependable supply for households, farmers, and food businesses.</p>
+        </div>
+        <div class="rabbit-video-grid">
+          <article class="rabbit-video-card rabbit-video-card-large">
+            <video controls preload="metadata">
+              <source src="Rabbit department/commisioning rabbit department.mp4" type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+            <div>
+              <span class="video-kicker">The beginning</span>
+              <h3>Commissioning the rabbit unit</h3>
+              <p>A look at the new department as Macmel expands its livestock offering.</p>
+            </div>
+          </article>
+          <article class="rabbit-video-card">
+            <video controls preload="metadata">
+              <source src="Rabbit department/procreation.mp4" type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+            <div>
+              <span class="video-kicker">Breeding</span>
+              <h3>Building a healthy line</h3>
+              <p>Responsible breeding and attentive daily care support strong stock.</p>
+            </div>
+          </article>
+          <article class="rabbit-video-card">
+            <video controls preload="metadata">
+              <source src="Rabbit department/rabbit birth.mp4" type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+            <div>
+              <span class="video-kicker">New life</span>
+              <h3>Growing the next generation</h3>
+              <p>Every new litter is handled with patience, hygiene, and close observation.</p>
+            </div>
           </article>
         </div>
       </div>
@@ -200,25 +260,25 @@
         </div>
         <div class="video-grid">
           <article class="video-card">
-            <video controls>
-              <source src="WhatsApp Video 2026-07-02 at 6.31.18 AM.mp4" type="video/mp4" />
+            <video controls preload="metadata">
+              <source src="Brahmas.mp4" type="video/mp4" />
               Your browser does not support the video tag.
             </video>
-            <h3>Farm operations</h3>
+            <h3>Brahma flock</h3>
           </article>
           <article class="video-card">
-            <video controls>
-              <source src="WhatsApp Video 2026-07-02 at 6.31.25 AM (1).mp4" type="video/mp4" />
+            <video controls preload="metadata">
+              <source src="Peckin Ducks.mp4" type="video/mp4" />
               Your browser does not support the video tag.
             </video>
-            <h3>Egg collection</h3>
+            <h3>Pekin duck feeding</h3>
           </article>
           <article class="video-card">
-            <video controls>
-              <source src="WhatsApp Video 2026-07-02 at 6.31.25 AM.mp4" type="video/mp4" />
+            <video controls preload="metadata">
+              <source src="Quails.mp4" type="video/mp4" />
               Your browser does not support the video tag.
             </video>
-            <h3>Delivery ready</h3>
+            <h3>Quail production</h3>
           </article>
         </div>
       </div>
@@ -275,6 +335,32 @@
   <script>
     const toggle = document.querySelector('.menu-toggle');
     const nav = document.querySelector('.main-nav');
+    const loader = document.querySelector('.page-loader');
+    const header = document.querySelector('.site-header');
+    const revealItems = document.querySelectorAll('main > section, .service-card, .product-row, .video-card, .testimonial-card, .contact-card');
+
+    const finishLoading = () => document.body.classList.add('page-ready');
+    window.addEventListener('load', () => window.setTimeout(finishLoading, 450), { once: true });
+    window.setTimeout(finishLoading, 1800);
+
+    const revealObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12 });
+
+    revealItems.forEach((item, index) => {
+      item.style.setProperty('--reveal-delay', `${Math.min(index % 4, 3) * 80}ms`);
+      revealObserver.observe(item);
+    });
+
+    window.addEventListener('scroll', () => {
+      header.classList.toggle('is-scrolled', window.scrollY > 18);
+    }, { passive: true });
+
     toggle.addEventListener('click', () => {
       nav.classList.toggle('active');
     });
