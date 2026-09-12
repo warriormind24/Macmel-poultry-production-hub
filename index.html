@@ -31,6 +31,7 @@
         <a href="#products">Products</a>
         <a href="#rabbits">Rabbits</a>
         <a href="#testimonials">Testimonials</a>
+        <a href="#invoice">Invoice</a>
         <a href="#contact">Contact</a>
       </nav>
     </div>
@@ -421,6 +422,64 @@
         </div>
       </div>
     </section>
+
+    <section id="invoice" class="section invoice-section">
+      <div class="container">
+        <div class="section-heading invoice-heading">
+          <span class="eyebrow invoice-eyebrow">For orders and supply</span>
+          <h2>Generate an invoice</h2>
+          <p class="section-intro">Prepare a clear local invoice in Zambian kwacha, then download it as a PDF for your customer.</p>
+        </div>
+        <form id="invoice-form" class="invoice-builder">
+          <div class="invoice-top-grid">
+            <div class="invoice-business-details">
+              <span class="invoice-label">From</span>
+              <h3>Macmel Poultry Production Hub</h3>
+              <p>A branch of Macmel Enterprises<br />K.E, Chililabombwe, Zambia, 10101<br />+260 970 602 929<br />info@Macmelenterprises.com</p>
+            </div>
+            <div class="invoice-meta-grid">
+              <label>Invoice number<input id="invoice-number" type="text" value="MCPH-001" required /></label>
+              <label>Invoice date<input id="invoice-date" type="date" required /></label>
+              <label>Due date<input id="due-date" type="date" required /></label>
+              <label>VAT / tax (%)<input id="tax-rate" type="number" min="0" max="100" step="0.01" value="0" /></label>
+            </div>
+          </div>
+
+          <div class="invoice-customer-grid">
+            <label>Bill to<input id="customer-name" type="text" placeholder="Customer or business name" required /></label>
+            <label>Customer phone<input id="customer-phone" type="tel" placeholder="+260 ..." /></label>
+            <label>Customer email<input id="customer-email" type="email" placeholder="customer@example.com" /></label>
+            <label>Customer address<input id="customer-address" type="text" placeholder="Town, street, or delivery address" /></label>
+          </div>
+
+          <div class="invoice-items-wrap">
+            <div class="invoice-items-header">
+              <h3>Items and services</h3>
+              <button id="add-invoice-item" class="button invoice-add-button" type="button">+ Add item</button>
+            </div>
+            <div id="invoice-items" class="invoice-items">
+              <div class="invoice-item-row">
+                <label>Description<input class="item-description" type="text" placeholder="e.g. Quail eggs" required /></label>
+                <label>Qty<input class="item-quantity" type="number" min="0.01" step="0.01" value="1" required /></label>
+                <label>Unit price (ZMW)<input class="item-price" type="number" min="0" step="0.01" placeholder="0.00" required /></label>
+                <button class="remove-invoice-item" type="button" aria-label="Remove item">×</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="invoice-bottom-grid">
+            <label>Notes<textarea id="invoice-notes" rows="5" placeholder="Payment instructions, delivery notes, or a thank-you message"></textarea></label>
+            <div class="invoice-summary" aria-live="polite">
+              <div><span>Subtotal</span><strong id="invoice-subtotal">ZMW 0.00</strong></div>
+              <div><span>Tax</span><strong id="invoice-tax">ZMW 0.00</strong></div>
+              <div class="invoice-total"><span>Total due</span><strong id="invoice-total">ZMW 0.00</strong></div>
+            </div>
+          </div>
+          <button class="button primary invoice-download" type="submit">Download invoice PDF</button>
+          <p id="invoice-status" class="invoice-status" role="status"></p>
+        </form>
+      </div>
+    </section>
   </main>
 
   <footer class="site-footer">
@@ -436,6 +495,157 @@
     const loader = document.querySelector('.page-loader');
     const header = document.querySelector('.site-header');
     const revealItems = document.querySelectorAll('main > section, .service-card, .product-row, .video-card, .testimonial-card, .contact-card');
+    const invoiceForm = document.querySelector('#invoice-form');
+    const invoiceItems = document.querySelector('#invoice-items');
+    const invoiceStatus = document.querySelector('#invoice-status');
+    const money = (value) => `ZMW ${Number(value || 0).toLocaleString('en-ZM', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+    const setDefaultDates = () => {
+      const today = new Date();
+      const dateValue = today.toISOString().slice(0, 10);
+      const due = new Date(today);
+      due.setDate(due.getDate() + 14);
+      document.querySelector('#invoice-date').value = dateValue;
+      document.querySelector('#due-date').value = due.toISOString().slice(0, 10);
+    };
+
+    const updateInvoiceTotals = () => {
+      let subtotal = 0;
+      invoiceItems.querySelectorAll('.invoice-item-row').forEach((row) => {
+        const quantity = Number(row.querySelector('.item-quantity').value) || 0;
+        const price = Number(row.querySelector('.item-price').value) || 0;
+        subtotal += quantity * price;
+      });
+      const taxRate = Number(document.querySelector('#tax-rate').value) || 0;
+      const tax = subtotal * (taxRate / 100);
+      document.querySelector('#invoice-subtotal').textContent = money(subtotal);
+      document.querySelector('#invoice-tax').textContent = money(tax);
+      document.querySelector('#invoice-total').textContent = money(subtotal + tax);
+      return { subtotal, tax, total: subtotal + tax, taxRate };
+    };
+
+    const bindInvoiceRow = (row) => {
+      row.querySelectorAll('input').forEach((input) => input.addEventListener('input', updateInvoiceTotals));
+      row.querySelector('.remove-invoice-item').addEventListener('click', () => {
+        if (invoiceItems.children.length > 1) {
+          row.remove();
+          updateInvoiceTotals();
+        }
+      });
+    };
+
+    const addInvoiceRow = () => {
+      const row = document.createElement('div');
+      row.className = 'invoice-item-row';
+      row.innerHTML = '<label>Description<input class="item-description" type="text" placeholder="e.g. Quail eggs" required /></label><label>Qty<input class="item-quantity" type="number" min="0.01" step="0.01" value="1" required /></label><label>Unit price (ZMW)<input class="item-price" type="number" min="0" step="0.01" placeholder="0.00" required /></label><button class="remove-invoice-item" type="button" aria-label="Remove item">×</button>';
+      invoiceItems.appendChild(row);
+      bindInvoiceRow(row);
+    };
+
+    const formatPdfMoney = (value) => `ZMW ${Number(value || 0).toFixed(2)}`;
+
+    const pdfSafeText = (value) => String(value || '').replace(/[^\x20-\x7E]/g, '?').replace(/[()\\]/g, (character) => `\\${character}`);
+
+    const createInvoicePdf = (totals) => {
+      const pageWidth = 595;
+      const margin = 44;
+      const customerName = document.querySelector('#customer-name').value;
+      const invoiceNumber = document.querySelector('#invoice-number').value;
+      const invoiceDate = document.querySelector('#invoice-date').value;
+      const dueDate = document.querySelector('#due-date').value;
+      const lines = [];
+      const addText = (text, x, y, size = 10, bold = false) => {
+        lines.push(`${bold ? '/F2' : '/F1'} ${size} Tf ${x} ${y} Td (${pdfSafeText(text)}) Tj`);
+      };
+      lines.push('q 0.035 0.157 0.11 rg 0 760 595 82 re f Q');
+      lines.push('1 1 1 rg');
+      addText('MACMEL POULTRY PRODUCTION HUB', margin, 805, 17, true);
+      addText('A branch of Macmel Enterprises | Chililabombwe, Zambia', margin, 788, 9);
+      lines.push('0 0 0 rg');
+      addText('INVOICE', margin, 738, 18, true);
+      addText(`Invoice no: ${invoiceNumber}`, 370, 748, 9);
+      addText(`Invoice date: ${invoiceDate}`, 370, 735, 9);
+      addText(`Due date: ${dueDate}`, 370, 722, 9);
+      lines.push('0.78 0.62 0.18 RG 44 710 m 551 710 l S');
+      addText('BILL TO', margin, 690, 9, true);
+      addText(customerName, margin, 675, 10);
+      addText(document.querySelector('#customer-phone').value, margin, 662, 9);
+      addText(document.querySelector('#customer-email').value, margin, 649, 9);
+      addText(document.querySelector('#customer-address').value, margin, 636, 9);
+      addText('FROM', 300, 690, 9, true);
+      addText('Macmel Poultry Production Hub', 300, 675, 10);
+      addText('+260 970 602 929 | info@Macmelenterprises.com', 300, 662, 8);
+      addText('K.E, Chililabombwe, Zambia, 10101', 300, 649, 8);
+      lines.push('0.07 0.24 0.16 rg 44 610 507 24 re f');
+      lines.push('1 1 1 rg');
+      addText('DESCRIPTION', 50, 618, 8, true);
+      addText('QTY', 385, 618, 8, true);
+      addText('UNIT PRICE', 425, 618, 8, true);
+      addText('AMOUNT', 545, 618, 8, true);
+      lines.push('0 0 0 rg');
+      let y = 588;
+      invoiceItems.querySelectorAll('.invoice-item-row').forEach((row) => {
+        const description = row.querySelector('.item-description').value;
+        const quantity = Number(row.querySelector('.item-quantity').value) || 0;
+        const price = Number(row.querySelector('.item-price').value) || 0;
+        addText(description.slice(0, 58), 50, y, 9);
+        addText(String(quantity), 385, y, 9);
+        addText(formatPdfMoney(price), 425, y, 8);
+        addText(formatPdfMoney(quantity * price), 545, y, 8);
+        y -= 18;
+      });
+      lines.push(`0.78 0.62 0.18 RG 350 ${y + 8} m 551 ${y + 8} l S`);
+      lines.push('0 0 0 rg');
+      addText('Subtotal', 350, y - 8, 9);
+      addText(formatPdfMoney(totals.subtotal), 545, y - 8, 9);
+      addText(`Tax (${totals.taxRate}%)`, 350, y - 24, 9);
+      addText(formatPdfMoney(totals.tax), 545, y - 24, 9);
+      addText('TOTAL DUE', 350, y - 48, 11, true);
+      addText(formatPdfMoney(totals.total), 545, y - 48, 11, true);
+      const notes = document.querySelector('#invoice-notes').value;
+      if (notes) {
+        addText('NOTES', margin, y - 8, 9, true);
+        notes.split(/\r?\n/).forEach((note, index) => addText(note.slice(0, 85), margin, y - 24 - (index * 13), 8));
+      }
+      addText('Thank you for choosing Macmel Poultry Production Hub.', margin, 52, 8);
+      const stream = `BT\n${lines.join('\n')}\nET`;
+      const objects = [
+        '<< /Type /Catalog /Pages 2 0 R >>',
+        '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+        '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R /F2 5 0 R >> >> /Contents 6 0 R >>',
+        '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
+        '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>',
+        `<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`
+      ];
+      let pdf = '%PDF-1.4\n';
+      const offsets = [0];
+      objects.forEach((object, index) => {
+        offsets.push(pdf.length);
+        pdf += `${index + 1} 0 obj\n${object}\nendobj\n`;
+      });
+      const xref = pdf.length;
+      pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
+      offsets.slice(1).forEach((offset) => { pdf += `${String(offset).padStart(10, '0')} 00000 n \n`; });
+      pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+      const blob = new Blob([pdf], { type: 'application/pdf' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `${invoiceNumber || 'macmel-invoice'}.pdf`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+      invoiceStatus.textContent = 'Invoice PDF downloaded successfully.';
+    };
+
+    setDefaultDates();
+    bindInvoiceRow(invoiceItems.querySelector('.invoice-item-row'));
+    document.querySelector('#add-invoice-item').addEventListener('click', addInvoiceRow);
+    document.querySelector('#tax-rate').addEventListener('input', updateInvoiceTotals);
+    invoiceForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      if (!invoiceForm.reportValidity()) return;
+      createInvoicePdf(updateInvoiceTotals());
+    });
+    updateInvoiceTotals();
 
     const finishLoading = () => document.body.classList.add('page-ready');
     window.addEventListener('load', () => window.setTimeout(finishLoading, 450), { once: true });
